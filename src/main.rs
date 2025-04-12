@@ -12,6 +12,7 @@ fn main() {
     
     match exercise.as_str() {
         "ex_0_1" => nature_of_code::ex_0_1::run(),
+        "ex_0_3" => nature_of_code::ex_0_3::run(),
         _ => {
             eprintln!("Unknown exercise: {}", exercise);
             std::process::exit(1);
