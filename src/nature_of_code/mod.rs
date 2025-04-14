@@ -1,6 +1,6 @@
-use std::cell::Cell;
 use nannou::prelude::*;
-use nannou_egui::{self, egui, Egui};
+use nannou_egui::{self, Egui, egui};
+use std::cell::Cell;
 
 pub mod ex_0_1;
 pub mod ex_0_3;
@@ -31,7 +31,7 @@ fn model(app: &App) -> Model {
     Model {
         egui,
         clear: Cell::new(true),
-        exercise: None //Some(ex_0_1::init(app)),
+        exercise: None, //Some(ex_0_1::init(app)),
     }
 }
 
@@ -47,8 +47,15 @@ fn update(app: &App, model: &mut Model, update: Update) {
             ui.heading("Exercises");
             ui.collapsing("Chapter 0", |ui| {
                 if ui.link("Exercise 0.1").clicked() {
-                    println!("Exercise 0.1 clicked");
                     model.exercise = Some(ex_0_1::init(app));
+                    model.clear.set(true);
+                }
+                if ui.link("Exercise 0.3").clicked() {
+                    model.exercise = Some(ex_0_3::init(app));
+                    model.clear.set(true);
+                }
+                if ui.link("Exercise 0.4").clicked() {
+                    model.exercise = Some(ex_0_4::init(app));
                     model.clear.set(true);
                 }
             });
@@ -56,22 +63,17 @@ fn update(app: &App, model: &mut Model, update: Update) {
 
     match &mut model.exercise {
         Some(exercise) => {
-            exercise.update(app, update);
+            exercise.update(app, update, &ctx);
         }
         None => {}
     }
-
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
-    let draw = app.draw();
-
     if frame.nth() == 0 || model.clear.get() {
         frame.clear(WHITE);
         model.clear.set(false);
     }
-
-    draw.to_frame(app, &frame).unwrap();
 
     match &model.exercise {
         Some(exercise) => {

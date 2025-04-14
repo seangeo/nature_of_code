@@ -1,5 +1,6 @@
 use crate::nature_of_code::exercise::Exercise;
 use nannou::prelude::*;
+use nannou_egui::{self, FrameCtx};
 
 pub fn init(_app: &App) -> Box<dyn Exercise> {
     Box::new(Model { x: 0., y: 0. })
@@ -11,7 +12,7 @@ struct Model {
 }
 
 impl Exercise for Model {
-    fn update(&mut self, _app: &App, _update: Update) {
+    fn update(&mut self, _app: &App, _update: Update, _ui_ctx: &FrameCtx) {
         let step: f32 = nannou::rand::random();
 
         if step >= 0.7 {
