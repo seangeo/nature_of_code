@@ -1,6 +1,6 @@
 use crate::nature_of_code::exercise::Exercise;
 use nannou::prelude::*;
-use nannou_egui::{self, FrameCtx, egui};
+use nannou_egui::{self, egui, FrameCtx};
 use rand_distr::{Distribution, Normal};
 
 pub fn init(app: &App) -> Box<dyn Exercise> {
@@ -55,5 +55,9 @@ fn draw_dot(draw: &Draw, splatter_stddev: f32, color_stddev: f32) {
     let b = normal_col.sample(&mut r2).clamp(0., 1.);
     let a = normal_col.sample(&mut r2).clamp(0., 1.);
 
-    draw.ellipse().radius(5.0).rgba(r, g, b, a).x(vx).y(vy);
+    let normal_rad = Normal::new(5., 2.).unwrap();
+    let mut r3 = rand::rng();
+    let radius = normal_rad.sample(&mut r3).clamp(0., 10.);
+
+    draw.ellipse().radius(radius).rgba(r, g, b, a).x(vx).y(vy);
 }
