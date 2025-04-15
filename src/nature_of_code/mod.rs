@@ -8,7 +8,7 @@ pub mod ex_0_4;
 pub mod exercise;
 
 pub fn run() {
-    nannou::app(model).update(update).simple_window(view).run();
+    nannou::app(model).update(update).run();
 }
 
 struct Model {
