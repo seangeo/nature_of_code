@@ -30,7 +30,7 @@ fn quadratic_distribution_sample() -> f32 {
     loop {
         let r1: f32 = map_range(nannou::rand::random(), 0., 1., -2., 2.);
         let probability = r1 * r1;
-        let r2: f32 = nannou::rand::random();
+        let r2: f32 = map_range(nannou::rand::random(), 0., 1., 0., 4.);
 
         if r2 < probability {
             return r1;
