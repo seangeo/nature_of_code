@@ -5,9 +5,10 @@ use std::cell::Cell;
 mod ex_0_1;
 mod ex_0_3;
 mod ex_0_4;
+mod ex_0_5;
 mod exercise;
 
-const EXERCISES: [ExerciseInfo; 3] = [
+const EXERCISES: [ExerciseInfo; 4] = [
     ExerciseInfo {
         name: "Exercise 0.1",
         init_fn: ex_0_1::init,
@@ -19,6 +20,10 @@ const EXERCISES: [ExerciseInfo; 3] = [
     ExerciseInfo {
         name: "Exercise 0.4",
         init_fn: ex_0_4::init,
+    },
+    ExerciseInfo {
+        name: "Exercise 0.5",
+        init_fn: ex_0_5::init,
     },
 ];
 
