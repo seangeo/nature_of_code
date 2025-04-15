@@ -32,10 +32,6 @@ impl Exercise for Model {
     fn draw(&self, app: &App, frame: &Frame) {
         let draw = app.draw();
 
-        if frame.nth() == 0 {
-            draw.background().color(WHITE);
-        }
-
         draw_dot(&draw, self.splatter_stddev, self.color_stddev);
 
         draw.to_frame(app, &frame).unwrap();
