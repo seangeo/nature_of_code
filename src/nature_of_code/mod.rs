@@ -1,5 +1,5 @@
 use nannou::prelude::*;
-use nannou_egui::{self, Egui, egui};
+use nannou_egui::{self, egui, Egui};
 use std::cell::Cell;
 
 pub mod ex_0_1;
@@ -7,9 +7,32 @@ pub mod ex_0_3;
 pub mod ex_0_4;
 pub mod exercise;
 
+const EXERCISES: [ExerciseInfo; 3] = [
+    ExerciseInfo {
+        name: "Exercise 0.1",
+        init_fn: ex_0_1::init,
+    },
+    ExerciseInfo {
+        name: "Exercise 0.3",
+        init_fn: ex_0_3::init,
+    },
+    ExerciseInfo {
+        name: "Exercise 0.4",
+        init_fn: ex_0_4::init,
+    },
+];
+
 pub fn run() {
     nannou::app(model).update(update).run();
 }
+
+#[derive(Copy, Clone)]
+struct ExerciseInfo {
+    name: &'static str,
+    init_fn: fn(&App) -> Box<dyn exercise::Exercise>,
+}
+
+type ExerciseSelection = Option<ExerciseInfo>;
 
 struct Model {
     egui: Egui,
@@ -31,11 +54,12 @@ fn model(app: &App) -> Model {
     Model {
         egui,
         clear: Cell::new(true),
-        exercise: None, //Some(ex_0_1::init(app)),
+        exercise: None,
     }
 }
 
 fn update(app: &App, model: &mut Model, update: Update) {
+    let mut selected_exercise: ExerciseSelection = None;
     let egui = &mut model.egui;
 
     egui.set_elapsed_time(update.since_start);
@@ -46,20 +70,23 @@ fn update(app: &App, model: &mut Model, update: Update) {
         .show(&ctx, |ui| {
             ui.heading("Exercises");
             ui.collapsing("Chapter 0", |ui| {
-                if ui.link("Exercise 0.1").clicked() {
-                    model.exercise = Some(ex_0_1::init(app));
-                    model.clear.set(true);
-                }
-                if ui.link("Exercise 0.3").clicked() {
-                    model.exercise = Some(ex_0_3::init(app));
-                    model.clear.set(true);
-                }
-                if ui.link("Exercise 0.4").clicked() {
-                    model.exercise = Some(ex_0_4::init(app));
-                    model.clear.set(true);
+                // Loop through the exercises and create links
+                for exercise_info in EXERCISES.iter() {
+                    if ui.link(exercise_info.name).clicked() {
+                        selected_exercise = Some(*exercise_info);
+                    }
                 }
             });
         });
+
+    // After the UI is updated, check if an exercise was selected and initialize it
+    match selected_exercise {
+        None => {}
+        Some(exercise) => {
+            model.exercise = Some((exercise.init_fn)(app));
+            model.clear.set(true);
+        }
+    }
 
     match &mut model.exercise {
         Some(exercise) => {
