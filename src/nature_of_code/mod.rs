@@ -2,10 +2,10 @@ use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
 use std::cell::Cell;
 
-pub mod ex_0_1;
-pub mod ex_0_3;
-pub mod ex_0_4;
-pub mod exercise;
+mod ex_0_1;
+mod ex_0_3;
+mod ex_0_4;
+mod exercise;
 
 const EXERCISES: [ExerciseInfo; 3] = [
     ExerciseInfo {
