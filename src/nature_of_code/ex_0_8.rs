@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use crate::nature_of_code::exercise::Exercise;
 use nannou::image::DynamicImage;
 use nannou::prelude::*;
@@ -53,6 +55,7 @@ impl Exercise for Model {
         });
 
         if self.build_image {
+            let time = Instant::now();
             let image = ImageBuffer::from_fn(
                 app.window_rect().w() as u32,
                 app.window_rect().h() as u32,
@@ -60,6 +63,7 @@ impl Exercise for Model {
             );
             self.image = DynamicImage::ImageRgba8(image);
             self.build_image = false;
+            debug!("Ex_0_8 build_image time={:?}", time.elapsed());
         }
     }
 

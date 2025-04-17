@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
-use std::cell::Cell;
+use std::{cell::Cell, time::Instant};
 
 mod ex_0_1;
 mod ex_0_3;
@@ -103,14 +103,18 @@ fn update(app: &App, model: &mut Model, update: Update) {
     match selected_exercise {
         None => {}
         Some(exercise) => {
+            let time = Instant::now();
             model.exercise = Some((exercise.init_fn)(app));
+            debug!("Exercise initialisation time={:?}", time.elapsed());
             model.clear.set(true);
         }
     }
 
     match &mut model.exercise {
         Some(exercise) => {
+            let time = Instant::now();
             exercise.update(app, update, &ctx);
+            debug!("Exercise update time={:?}", time.elapsed());
         }
         None => {}
     }
@@ -124,7 +128,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     match &model.exercise {
         Some(exercise) => {
+            let time = Instant::now();
             exercise.draw(app, &frame);
+            debug!("Exercise draw time={:?}", time.elapsed());
         }
         None => {}
     }
