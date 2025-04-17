@@ -8,9 +8,10 @@ mod ex_0_4;
 mod ex_0_5;
 mod ex_0_6;
 mod ex_0_7;
+mod ex_0_8;
 mod exercise;
 
-const EXERCISES: [ExerciseInfo; 6] = [
+const EXERCISES: [ExerciseInfo; 7] = [
     ExerciseInfo {
         name: "Exercise 0.1",
         init_fn: ex_0_1::init,
@@ -34,6 +35,10 @@ const EXERCISES: [ExerciseInfo; 6] = [
     ExerciseInfo {
         name: "Exercise 0.7",
         init_fn: ex_0_7::init,
+    },
+    ExerciseInfo {
+        name: "Exercise 0.8",
+        init_fn: ex_0_8::init,
     },
 ];
 
