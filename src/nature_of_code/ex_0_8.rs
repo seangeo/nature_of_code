@@ -11,21 +11,21 @@ pub fn init(_app: &App) -> Box<dyn Exercise> {
     Box::new(Model {
         image: DynamicImage::ImageRgba8(image),
         build_image: true,
-        noise: nannou::noise::Perlin::new(),
+        noise: nannou::noise::BasicMulti::new(),
     })
 }
 
 struct Model {
     image: DynamicImage,
     build_image: bool,
-    noise: nannou::noise::Perlin,
+    noise: nannou::noise::BasicMulti,
 }
 
 impl Model {
     fn pixel_for(&self, x: u32, y: u32) -> nannou::image::Rgba<u8> {
         let n = self
             .noise
-            .get([x as f64 / 50. as f64, y as f64 / 50. as f64, 0.]);
+            .get([x as f64 / 50. as f64, y as f64 / 50. as f64]);
         let c = map_range(n, -1., 1., 0, 255) as u8;
         nannou::image::Rgba([c, c, c, 100])
     }
