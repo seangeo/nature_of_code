@@ -3,6 +3,7 @@ use nannou_egui::{self, egui, Egui};
 use std::{cell::Cell, time::Instant};
 
 mod ex_0_1;
+mod ex_0_10;
 mod ex_0_3;
 mod ex_0_4;
 mod ex_0_5;
@@ -11,7 +12,7 @@ mod ex_0_7;
 mod ex_0_8;
 mod exercise;
 
-const EXERCISES: [ExerciseInfo; 7] = [
+const EXERCISES: [ExerciseInfo; 8] = [
     ExerciseInfo {
         name: "Exercise 0.1",
         init_fn: ex_0_1::init,
@@ -39,6 +40,10 @@ const EXERCISES: [ExerciseInfo; 7] = [
     ExerciseInfo {
         name: "Exercise 0.8",
         init_fn: ex_0_8::init,
+    },
+    ExerciseInfo {
+        name: "Exercise 0.10",
+        init_fn: ex_0_10::init,
     },
 ];
 
