@@ -17,7 +17,14 @@ pub fn init(_app: &App) -> Box<dyn Exercise> {
         noise: nannou::noise::BasicMulti::new(),
         x_fact: 50.,
         y_fact: 50.,
+        color_palette: ColorPalette::FullColor,
     })
+}
+
+#[derive(PartialEq)]
+enum ColorPalette {
+    Grayscale,
+    FullColor,
 }
 
 struct Model {
@@ -26,6 +33,7 @@ struct Model {
     noise: nannou::noise::BasicMulti,
     x_fact: f64,
     y_fact: f64,
+    color_palette: ColorPalette,
 }
 
 impl Model {
@@ -33,8 +41,19 @@ impl Model {
         let n = self
             .noise
             .get([x as f64 / self.x_fact as f64, y as f64 / self.y_fact as f64]);
-        let c = map_range(n, -1., 1., 0, 255) as u8;
-        nannou::image::Rgba([c, c, c, 100])
+
+        match self.color_palette {
+            ColorPalette::Grayscale => {
+                let c = map_range(n, -1., 1., 0, 255) as u8;
+                nannou::image::Rgba([c, c, c, 100])
+            }
+            ColorPalette::FullColor => {
+                let hue = map_range(n, -1., 1., 0., 1.);
+                let hsl = hsl(hue, 1., 0.5);
+                let (r, g, b) = Rgb::from(hsl).into_components();
+                nannou::image::Rgba([(r * 255.) as u8, (g * 255.) as u8, (b * 255.) as u8, 100])
+            }
+        }
     }
 
     fn build_image(&mut self, width: u32, height: u32) {
@@ -67,18 +86,56 @@ impl Model {
 impl Exercise for Model {
     fn update(&mut self, app: &App, _update: Update, ui_ctx: &FrameCtx) {
         egui::TopBottomPanel::bottom("Settings").show(&ui_ctx, |ui| {
-            if ui
-                .add(egui::Slider::new(&mut self.x_fact, 0.0..=200.0).text("x-factor"))
-                .drag_released()
-            {
-                self.build_image = true;
-            }
-            if ui
-                .add(egui::Slider::new(&mut self.y_fact, 0.0..=200.0).text("y-factor"))
-                .drag_released()
-            {
-                self.build_image = true;
-            }
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(0., 0.),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
+                        if ui
+                            .add(egui::Slider::new(&mut self.x_fact, 0.1..=200.0).text("x-factor"))
+                            .drag_released()
+                        {
+                            self.build_image = true;
+                        }
+                        if ui
+                            .add(egui::Slider::new(&mut self.y_fact, 0.1..=200.0).text("y-factor"))
+                            .drag_released()
+                        {
+                            self.build_image = true;
+                        }
+                    },
+                );
+
+                ui.separator();
+
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(100., 0.),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
+                        if ui
+                            .radio_value(
+                                &mut self.color_palette,
+                                ColorPalette::Grayscale,
+                                "Grayscale",
+                            )
+                            .changed()
+                        {
+                            self.build_image = true
+                        }
+
+                        if ui
+                            .radio_value(
+                                &mut self.color_palette,
+                                ColorPalette::FullColor,
+                                "Full Color",
+                            )
+                            .changed()
+                        {
+                            self.build_image = true
+                        }
+                    },
+                );
+            });
         });
 
         self.build_image(app.window_rect().w() as u32, app.window_rect().h() as u32);
