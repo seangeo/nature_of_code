@@ -1371,6 +1371,7 @@ dependencies = [
  "pretty_env_logger",
  "rand 0.9.0",
  "rand_distr",
+ "rayon",
 ]
 
 [[package]]
