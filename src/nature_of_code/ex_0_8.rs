@@ -2,6 +2,7 @@ use std::time::Instant;
 
 use crate::nature_of_code::exercise::Exercise;
 use nannou::image::DynamicImage;
+use nannou::noise::{BasicMulti, MultiFractal};
 use nannou::prelude::*;
 use nannou::wgpu::Texture;
 use nannou::{image::ImageBuffer, noise::NoiseFn};
@@ -14,10 +15,13 @@ pub fn init(_app: &App) -> Box<dyn Exercise> {
     Box::new(Model {
         image: DynamicImage::ImageRgba8(image),
         build_image: true,
-        noise: nannou::noise::BasicMulti::new(),
         x_fact: 50.,
         y_fact: 50.,
         color_palette: ColorPalette::FullColor,
+        octaves: BasicMulti::DEFAULT_OCTAVES,
+        frequency: BasicMulti::DEFAULT_FREQUENCY,
+        lacunarity: BasicMulti::DEFAULT_LACUNARITY,
+        persistence: BasicMulti::DEFAULT_PERSISTENCE,
     })
 }
 
@@ -30,17 +34,26 @@ enum ColorPalette {
 struct Model {
     image: DynamicImage,
     build_image: bool,
-    noise: nannou::noise::BasicMulti,
     x_fact: f64,
     y_fact: f64,
     color_palette: ColorPalette,
+    octaves: usize,
+    frequency: f64,
+    lacunarity: f64,
+    persistence: f64,
 }
 
 impl Model {
-    fn pixel_for(&self, x: u32, y: u32) -> nannou::image::Rgba<u8> {
-        let n = self
-            .noise
-            .get([x as f64 / self.x_fact as f64, y as f64 / self.y_fact as f64]);
+    fn noise(&self) -> BasicMulti {
+        BasicMulti::new()
+            .set_octaves(self.octaves)
+            .set_frequency(self.frequency)
+            .set_lacunarity(self.lacunarity)
+            .set_persistence(self.persistence)
+    }
+
+    fn pixel_for(&self, x: u32, y: u32, noise: &BasicMulti) -> nannou::image::Rgba<u8> {
+        let n = noise.get([x as f64 / self.x_fact as f64, y as f64 / self.y_fact as f64]);
 
         match self.color_palette {
             ColorPalette::Grayscale => {
@@ -58,6 +71,7 @@ impl Model {
 
     fn build_image(&mut self, width: u32, height: u32) {
         if self.build_image {
+            let noise = self.noise();
             let time = Instant::now();
 
             let coords: Vec<(u32, u32)> = (0..height)
@@ -66,7 +80,7 @@ impl Model {
 
             let pixels: Vec<nannou::image::Rgba<u8>> = coords
                 .par_iter()
-                .map(|&(x, y)| self.pixel_for(x, y))
+                .map(|&(x, y)| self.pixel_for(x, y, &noise))
                 .collect();
 
             let mut image = ImageBuffer::new(width, height);
@@ -132,6 +146,58 @@ impl Exercise for Model {
                             .changed()
                         {
                             self.build_image = true
+                        }
+                    },
+                );
+
+                ui.separator();
+
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(0., 0.),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
+                        if ui
+                            .add(egui::Slider::new(&mut self.octaves, 1..=10).text("Octaves"))
+                            .drag_released()
+                        {
+                            self.build_image = true;
+                        }
+
+                        if ui
+                            .add(
+                                egui::Slider::new(&mut self.frequency, 0.1..=4.0).text("Frequency"),
+                            )
+                            .drag_released()
+                        {
+                            self.build_image = true;
+                        }
+                    },
+                );
+
+                ui.separator();
+
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(0., 0.),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
+                        if ui
+                            .add(
+                                egui::Slider::new(&mut self.lacunarity, 0.1..=4.0)
+                                    .text("Lacunarity"),
+                            )
+                            .drag_released()
+                        {
+                            self.build_image = true;
+                        }
+
+                        if ui
+                            .add(
+                                egui::Slider::new(&mut self.persistence, 0.1..=4.0)
+                                    .text("Persistence"),
+                            )
+                            .drag_released()
+                        {
+                            self.build_image = true;
                         }
                     },
                 );
