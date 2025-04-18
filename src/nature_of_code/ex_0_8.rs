@@ -15,8 +15,11 @@ pub fn init(_app: &App) -> Box<dyn Exercise> {
     Box::new(Model {
         image: DynamicImage::ImageRgba8(image),
         build_image: true,
+        animate: false,
         x_fact: 50.,
         y_fact: 50.,
+        t: 0.,
+        t_rate: 0.01,
         color_palette: ColorPalette::FullColor,
         octaves: BasicMulti::DEFAULT_OCTAVES,
         frequency: BasicMulti::DEFAULT_FREQUENCY,
@@ -34,8 +37,11 @@ enum ColorPalette {
 struct Model {
     image: DynamicImage,
     build_image: bool,
+    animate: bool,
     x_fact: f64,
     y_fact: f64,
+    t: f64,
+    t_rate: f64,
     color_palette: ColorPalette,
     octaves: usize,
     frequency: f64,
@@ -53,7 +59,11 @@ impl Model {
     }
 
     fn pixel_for(&self, x: u32, y: u32, noise: &BasicMulti) -> nannou::image::Rgba<u8> {
-        let n = noise.get([x as f64 / self.x_fact as f64, y as f64 / self.y_fact as f64]);
+        let n = noise.get([
+            x as f64 / self.x_fact as f64,
+            y as f64 / self.y_fact as f64,
+            self.t,
+        ]);
 
         match self.color_palette {
             ColorPalette::Grayscale => {
@@ -70,7 +80,7 @@ impl Model {
     }
 
     fn build_image(&mut self, width: u32, height: u32) {
-        if self.build_image {
+        if self.build_image || self.animate {
             let noise = self.noise();
             let time = Instant::now();
 
@@ -92,6 +102,7 @@ impl Model {
 
             self.image = DynamicImage::ImageRgba8(image);
             self.build_image = false;
+            self.t += self.t_rate;
             debug!("Ex_0_8 build_image time={:?}", time.elapsed());
         }
     }
@@ -201,17 +212,31 @@ impl Exercise for Model {
                         }
                     },
                 );
+
+                ui.separator();
+
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(100., 0.),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
+                        ui.checkbox(&mut self.animate, "Animate");
+                    },
+                );
             });
         });
 
-        self.build_image(app.window_rect().w() as u32, app.window_rect().h() as u32);
+        self.build_image(
+            app.window_rect().w() as u32 / 2,
+            app.window_rect().h() as u32 / 2,
+        );
     }
 
     fn draw(&self, app: &App, frame: &Frame) {
         let draw = app.draw();
+        let win = app.window_rect();
 
         let texture = Texture::from_image(app, &self.image);
-        draw.texture(&texture);
+        draw.texture(&texture).w_h(win.w(), win.h());
 
         draw.to_frame(app, &frame).unwrap();
     }
