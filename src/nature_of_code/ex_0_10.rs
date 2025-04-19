@@ -6,10 +6,12 @@ use nannou::{
 use nannou_egui::{self, FrameCtx};
 
 pub fn init(_app: &App) -> Box<dyn Exercise> {
-    Box::new(Model {})
+    Box::new(Model { rotation: 0.0 })
 }
 
-struct Model {}
+struct Model {
+    rotation: f32,
+}
 
 impl Model {
     fn build_grid(&self) -> Vec<geom::Quad<geom::Vec2>> {
@@ -36,22 +38,46 @@ impl Model {
     fn map_vertex(&self, v: Vec2, noise: &BasicMulti, t: f64) -> (Vec3, Srgb) {
         let n = noise.get([v.x as f64 / 50., v.y as f64 / 50., t / 4.]);
         let z = map_range(n, -1., 1., -30., 30.);
-        let c = map_range(n, -1., 1., 0., 1.);
-        let color = srgb(c, c, c);
 
-        (v.extend(z), color)
+        (v.extend(z), self.map_colour(n))
+    }
+
+    fn map_colour(&self, n: f64) -> Srgb {
+        let hue = map_range(n, -1., 1., 0., 1.);
+        let hsl = hsl(1. - hue, 1., 0.5);
+        let (r, g, b) = Rgb::from(hsl).into_components();
+        srgb(r, g, b)
     }
 }
 
 impl Exercise for Model {
-    fn update(&mut self, _app: &App, _update: Update, _ui_ctx: &FrameCtx) {}
+    fn update(&mut self, _app: &App, _update: Update, _ui_ctx: &FrameCtx) {
+        self.rotation += 0.0025;
 
-    // width: 16 x 20 = 320
-    // height: 32 x 20 = 640
-    //
+        if self.rotation > TAU {
+            self.rotation -= TAU;
+        }
+    }
+
     fn draw(&self, app: &App, frame: &Frame) {
         let draw = app.draw();
         draw.background().color(WHITE);
+
+        let rotation_matrix = Mat4::from_rotation_y(self.rotation);
+        let window = app.window_rect();
+        let aspect_ratio = window.w() / window.h();
+        let fov = PI / 3.0;
+        let near = 10.1;
+        let far = 500.0;
+
+        let perspective_matrix = Mat4::perspective_rh_gl(fov, aspect_ratio, near, far);
+
+        let eye = pt3(0., -20., 3.);
+        let target = pt3(0., 0., 0.);
+        let up = vec3(0., 1., 0.);
+        let view_matrix = Mat4::look_at_rh(eye, target, up);
+
+        let transform = perspective_matrix * rotation_matrix * view_matrix;
 
         let noise = BasicMulti::new();
         let grid = self.build_grid();
@@ -61,11 +87,7 @@ impl Exercise for Model {
             .flat_map(|cell| cell.triangles_iter())
             .map(|tr| tr.map_vertices(|v| self.map_vertex(v, &noise, app.time as f64)));
 
-        draw.scale(1.5)
-            .mesh()
-            .tris_colored(tris.clone())
-            .x_radians(PI / 3.5)
-            .z_radians(app.time / 5.);
+        draw.transform(transform).mesh().tris_colored(tris);
 
         draw.to_frame(app, &frame).unwrap();
     }
