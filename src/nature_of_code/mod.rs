@@ -57,15 +57,6 @@ fn update(app: &App, model: &mut Model, update: Update) {
                     }
                 }
             });
-            
-            // Future chapters can be added here
-            // ui.collapsing("Chapter 1", |ui| {
-            //     for exercise_info in chapter_1::EXERCISES.iter() {
-            //         if ui.link(exercise_info.name).clicked() {
-            //             selected_exercise = Some(*exercise_info);
-            //         }
-            //     }
-            // });
         });
 
     // After the UI is updated, check if an exercise was selected and initialize it
