@@ -2,12 +2,12 @@ use nannou::prelude::*;
 use nannou_egui::{self, egui, Egui};
 use std::{cell::Cell, time::Instant};
 
+mod chapter;
 mod chapter_0;
 mod exercise;
-mod chapter;
 
-use exercise::ExerciseInfo;
 use chapter::Chapter;
+use exercise::ExerciseInfo;
 
 pub fn run() {
     nannou::app(model).update(update).run();
@@ -21,6 +21,7 @@ struct Model {
     exercise: Option<Box<dyn exercise::Exercise>>,
     chapters: Vec<Chapter>,
     selected_exercise: Option<ExerciseInfo>,
+    show_sidebar: bool,
 }
 
 fn model(app: &App) -> Model {
@@ -38,10 +39,9 @@ fn model(app: &App) -> Model {
         egui,
         clear: Cell::new(true),
         exercise: None,
-        chapters: vec![
-            chapter_0::chapter(),
-        ],
+        chapters: vec![chapter_0::chapter()],
         selected_exercise: None,
+        show_sidebar: true,
     }
 }
 
@@ -52,33 +52,51 @@ fn update(app: &App, model: &mut Model, update: Update) {
     egui.set_elapsed_time(update.since_start);
     let ctx = egui.begin_frame();
 
-    egui::SidePanel::left("Exercises")
-        .resizable(true)
-        .show(&ctx, |ui| {
-            ui.set_min_width(160.0);
-            ui.heading("Exercises");
-            
-            for chapter in &model.chapters {
-                ui.collapsing(chapter.name, |ui| {
-                    for exercise_info in chapter.exercises.iter() {
-                        let is_selected = model.selected_exercise.map_or(false, |selected| {
-                            selected.name == exercise_info.name
-                        });
-                        
-                        if is_selected {
-                            ui.visuals_mut().selection.bg_fill = egui::Color32::from_rgb(66, 150, 250);
-                        }
-                        
-                        let response = ui.selectable_label(is_selected, exercise_info.name);
-                        if response.clicked() {
-                            selected_exercise = Some(*exercise_info);
-                        }
-                    }
-                });
+    egui::TopBottomPanel::top("top_panel").show(&ctx, |ui| {
+        ui.horizontal(|ui| {
+            if ui
+                .button(if model.show_sidebar {
+                    "Hide Sidebar"
+                } else {
+                    "Show Sidebar"
+                })
+                .clicked()
+            {
+                model.show_sidebar = !model.show_sidebar;
+                model.clear.set(true);
             }
         });
+    });
 
-    // After the UI is updated, check if an exercise was selected and initialize it
+    if model.show_sidebar {
+        egui::SidePanel::left("Exercises")
+            .resizable(true)
+            .show(&ctx, |ui| {
+                ui.set_min_width(160.0);
+                ui.heading("Exercises");
+
+                for chapter in &model.chapters {
+                    ui.collapsing(chapter.name, |ui| {
+                        for exercise_info in chapter.exercises.iter() {
+                            let is_selected = model
+                                .selected_exercise
+                                .map_or(false, |selected| selected.name == exercise_info.name);
+
+                            if is_selected {
+                                ui.visuals_mut().selection.bg_fill =
+                                    egui::Color32::from_rgb(66, 150, 250);
+                            }
+
+                            let response = ui.selectable_label(is_selected, exercise_info.name);
+                            if response.clicked() {
+                                selected_exercise = Some(*exercise_info);
+                            }
+                        }
+                    });
+                }
+            });
+    }
+
     match selected_exercise {
         None => {}
         Some(exercise) => {
