@@ -65,6 +65,11 @@ fn update(app: &App, model: &mut Model, update: Update) {
                 model.show_sidebar = !model.show_sidebar;
                 model.clear.set(true);
             }
+            
+            ui.add_space(8.0);
+            if let Some(exercise) = &model.selected_exercise {
+                ui.label(egui::RichText::new(exercise.name).strong());
+            }
         });
     });
 
