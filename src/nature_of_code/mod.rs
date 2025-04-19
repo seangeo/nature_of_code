@@ -20,6 +20,7 @@ struct Model {
     clear: Cell<bool>,
     exercise: Option<Box<dyn exercise::Exercise>>,
     chapters: Vec<Chapter>,
+    selected_exercise: Option<ExerciseInfo>,
 }
 
 fn model(app: &App) -> Model {
@@ -40,6 +41,7 @@ fn model(app: &App) -> Model {
         chapters: vec![
             chapter_0::chapter(),
         ],
+        selected_exercise: None,
     }
 }
 
@@ -51,14 +53,24 @@ fn update(app: &App, model: &mut Model, update: Update) {
     let ctx = egui.begin_frame();
 
     egui::SidePanel::left("Exercises")
-        .resizable(false)
+        .resizable(true)
         .show(&ctx, |ui| {
+            ui.set_min_width(160.0);
             ui.heading("Exercises");
             
             for chapter in &model.chapters {
                 ui.collapsing(chapter.name, |ui| {
                     for exercise_info in chapter.exercises.iter() {
-                        if ui.link(exercise_info.name).clicked() {
+                        let is_selected = model.selected_exercise.map_or(false, |selected| {
+                            selected.name == exercise_info.name
+                        });
+                        
+                        if is_selected {
+                            ui.visuals_mut().selection.bg_fill = egui::Color32::from_rgb(66, 150, 250);
+                        }
+                        
+                        let response = ui.selectable_label(is_selected, exercise_info.name);
+                        if response.clicked() {
                             selected_exercise = Some(*exercise_info);
                         }
                     }
@@ -72,6 +84,7 @@ fn update(app: &App, model: &mut Model, update: Update) {
         Some(exercise) => {
             let time = Instant::now();
             model.exercise = Some((exercise.init_fn)(app));
+            model.selected_exercise = Some(exercise);
             debug!("Exercise initialisation time={:?}", time.elapsed());
             model.clear.set(true);
         }
