@@ -5,7 +5,8 @@ use std::{cell::Cell, time::Instant};
 mod chapter_0;
 mod exercise;
 
-const EXERCISES: [ExerciseInfo; 8] = [
+// Define exercises by chapter
+const CHAPTER_0_EXERCISES: [ExerciseInfo; 8] = [
     ExerciseInfo {
         name: "Exercise 0.1",
         init_fn: chapter_0::ex_0_1::init,
@@ -87,14 +88,24 @@ fn update(app: &App, model: &mut Model, update: Update) {
         .resizable(false)
         .show(&ctx, |ui| {
             ui.heading("Exercises");
+            
+            // Chapter 0
             ui.collapsing("Chapter 0", |ui| {
-                // Loop through the exercises and create links
-                for exercise_info in EXERCISES.iter() {
+                for exercise_info in CHAPTER_0_EXERCISES.iter() {
                     if ui.link(exercise_info.name).clicked() {
                         selected_exercise = Some(*exercise_info);
                     }
                 }
             });
+            
+            // Future chapters can be added here
+            // ui.collapsing("Chapter 1", |ui| {
+            //     for exercise_info in CHAPTER_1_EXERCISES.iter() {
+            //         if ui.link(exercise_info.name).clicked() {
+            //             selected_exercise = Some(*exercise_info);
+            //         }
+            //     }
+            // });
         });
 
     // After the UI is updated, check if an exercise was selected and initialize it
