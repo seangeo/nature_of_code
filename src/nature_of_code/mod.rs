@@ -4,8 +4,10 @@ use std::{cell::Cell, time::Instant};
 
 mod chapter_0;
 mod exercise;
+mod chapter;
 
 use exercise::ExerciseInfo;
+use chapter::Chapter;
 
 pub fn run() {
     nannou::app(model).update(update).run();
@@ -17,6 +19,7 @@ struct Model {
     egui: Egui,
     clear: Cell<bool>,
     exercise: Option<Box<dyn exercise::Exercise>>,
+    chapters: Vec<Chapter>,
 }
 
 fn model(app: &App) -> Model {
@@ -34,6 +37,9 @@ fn model(app: &App) -> Model {
         egui,
         clear: Cell::new(true),
         exercise: None,
+        chapters: vec![
+            chapter_0::chapter(),
+        ],
     }
 }
 
@@ -49,14 +55,15 @@ fn update(app: &App, model: &mut Model, update: Update) {
         .show(&ctx, |ui| {
             ui.heading("Exercises");
             
-            // Chapter 0
-            ui.collapsing("Chapter 0", |ui| {
-                for exercise_info in chapter_0::EXERCISES.iter() {
-                    if ui.link(exercise_info.name).clicked() {
-                        selected_exercise = Some(*exercise_info);
+            for chapter in &model.chapters {
+                ui.collapsing(chapter.name, |ui| {
+                    for exercise_info in chapter.exercises.iter() {
+                        if ui.link(exercise_info.name).clicked() {
+                            selected_exercise = Some(*exercise_info);
+                        }
                     }
-                }
-            });
+                });
+            }
         });
 
     // After the UI is updated, check if an exercise was selected and initialize it

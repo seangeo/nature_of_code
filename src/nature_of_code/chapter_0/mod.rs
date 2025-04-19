@@ -1,4 +1,5 @@
 use crate::nature_of_code::exercise::ExerciseInfo;
+use crate::nature_of_code::chapter::Chapter;
 
 pub mod ex_0_1;
 pub mod ex_0_3;
@@ -42,4 +43,11 @@ pub const EXERCISES: [ExerciseInfo; 8] = [
         name: "Exercise 0.10",
         init_fn: ex_0_10::init,
     },
-]; 
+];
+
+pub fn chapter() -> Chapter {
+    Chapter {
+        name: "Chapter 0",
+        exercises: &EXERCISES,
+    }
+} 
