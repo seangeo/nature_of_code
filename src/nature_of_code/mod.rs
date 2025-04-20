@@ -4,6 +4,7 @@ use std::{cell::Cell, time::Instant};
 
 mod chapter;
 mod chapter_0;
+mod chapter_1;
 mod exercise;
 
 use chapter::Chapter;
@@ -39,7 +40,7 @@ fn model(app: &App) -> Model {
         egui,
         clear: Cell::new(true),
         exercise: None,
-        chapters: vec![chapter_0::chapter()],
+        chapters: vec![chapter_0::chapter(), chapter_1::chapter()],
         selected_exercise: None,
         show_sidebar: true,
     }
@@ -65,7 +66,7 @@ fn update(app: &App, model: &mut Model, update: Update) {
                 model.show_sidebar = !model.show_sidebar;
                 model.clear.set(true);
             }
-            
+
             ui.add_space(8.0);
             if let Some(exercise) = &model.selected_exercise {
                 ui.label(egui::RichText::new(exercise.name).strong());
