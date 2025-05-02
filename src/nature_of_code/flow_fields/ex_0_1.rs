@@ -10,15 +10,15 @@ pub fn init(app: &App) -> Box<dyn Exercise> {
 }
 
 struct Model {
-    particles: Vec<Particle>,
+    particles: Vec<FlowLine>,
 }
 
-struct Particle {
+struct FlowLine {
     position: Vec2,
     velocity: Vec2,
 }
 
-impl Particle {
+impl FlowLine {
     fn flow(&mut self) -> &mut Self {
         self.position += self.velocity;
         self
@@ -36,8 +36,8 @@ fn model(app: &App) -> Model {
     let width = window.w();
     let height = window.h();
 
-    let particles: Vec<Particle> = (0..1000)
-        .map(|_| Particle {
+    let particles: Vec<FlowLine> = (0..5000)
+        .map(|_| FlowLine {
             position: vec2(
                 map_range(rand::random(), 0., 1., -width, width),
                 map_range(rand::random(), 0., 1., -height, height),
