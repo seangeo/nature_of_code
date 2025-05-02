@@ -6,6 +6,7 @@ mod chapter;
 mod chapter_0;
 mod chapter_1;
 mod exercise;
+mod flow_fields;
 
 use chapter::Chapter;
 use exercise::ExerciseInfo;
@@ -40,7 +41,11 @@ fn model(app: &App) -> Model {
         egui,
         clear: Cell::new(true),
         exercise: None,
-        chapters: vec![chapter_0::chapter(), chapter_1::chapter()],
+        chapters: vec![
+            chapter_0::chapter(),
+            chapter_1::chapter(),
+            flow_fields::chapter(),
+        ],
         selected_exercise: None,
         show_sidebar: true,
     }
