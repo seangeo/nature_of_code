@@ -67,10 +67,10 @@ impl Exercise for Model {
         let draw = app.draw();
 
         for particle in &self.particles {
-            draw.ellipse()
-                .xy(particle.position)
-                .color(BLACK)
-                .wh(vec2(1.5, 1.5));
+            draw.line()
+                .start(particle.position - particle.velocity)
+                .end(particle.position)
+                .color(BLACK);
         }
 
         draw.to_frame(app, &frame).unwrap();
