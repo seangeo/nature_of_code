@@ -10,7 +10,7 @@ pub fn init(app: &App) -> Box<dyn Exercise> {
 }
 
 struct Model {
-    particles: Vec<FlowLine>,
+    flow_lines: Vec<FlowLine>,
 }
 
 struct FlowLine {
@@ -36,7 +36,7 @@ fn model(app: &App) -> Model {
     let width = window.w();
     let height = window.h();
 
-    let particles: Vec<FlowLine> = (0..5000)
+    let flow_lines: Vec<FlowLine> = (0..5000)
         .map(|_| FlowLine {
             position: vec2(
                 map_range(rand::random(), 0., 1., -width, width),
@@ -46,30 +46,30 @@ fn model(app: &App) -> Model {
         })
         .collect();
 
-    Model { particles }
+    Model { flow_lines }
 }
 
 impl Exercise for Model {
     fn update(&mut self, app: &App, _update: Update, _ui_ctx: &FrameCtx) {
         let noise = BasicMulti::new();
 
-        for particle in self.particles.iter_mut() {
+        for flow_line in self.flow_lines.iter_mut() {
             let direction = noise.get([
-                particle.position.x as f64 / 150.,
-                particle.position.y as f64 / 150.,
+                flow_line.position.x as f64 / 150.,
+                flow_line.position.y as f64 / 150.,
                 app.time as f64 / 100.,
             ]);
-            particle.update_velocity(direction as f32).flow();
+            flow_line.update_velocity(direction as f32).flow();
         }
     }
 
     fn draw(&self, app: &App, frame: &Frame) {
         let draw = app.draw();
 
-        for particle in &self.particles {
+        for flow_line in &self.flow_lines {
             draw.line()
-                .start(particle.position - particle.velocity)
-                .end(particle.position)
+                .start(flow_line.position - flow_line.velocity)
+                .end(flow_line.position)
                 .color(BLACK);
         }
 
