@@ -1,8 +1,5 @@
-use crate::nature_of_code::exercise::Exercise;
-use nannou::{
-    noise::{BasicMulti, NoiseFn},
-    prelude::*,
-};
+use crate::nature_of_code::{exercise::Exercise, noise_config::NoiseConfig};
+use nannou::{noise::NoiseFn, prelude::*};
 use nannou_egui::{self, FrameCtx};
 
 pub fn init(app: &App) -> Box<dyn Exercise> {
@@ -11,11 +8,12 @@ pub fn init(app: &App) -> Box<dyn Exercise> {
 
 struct Model {
     flow_lines: Vec<FlowLine>,
+    noise_config: NoiseConfig,
 }
 
 impl Model {
     fn update_flow_lines(&mut self, time: f64) -> &Self {
-        let noise = BasicMulti::new();
+        let noise = self.noise_config.create_noise();
 
         for flow_line in self.flow_lines.iter_mut() {
             let direction = noise.get([
@@ -36,6 +34,16 @@ struct FlowLine {
 }
 
 impl FlowLine {
+    fn new(width: f32, height: f32) -> Self {
+        FlowLine {
+            position: vec2(
+                map_range(rand::random(), 0., 1., -width, width),
+                map_range(rand::random(), 0., 1., -height, height),
+            ),
+            velocity: Vec2::ZERO,
+        }
+    }
+
     fn flow(&mut self) -> &mut Self {
         self.position += self.velocity;
         self
@@ -53,17 +61,12 @@ fn model(app: &App) -> Model {
     let width = window.w();
     let height = window.h();
 
-    let flow_lines: Vec<FlowLine> = (0..5000)
-        .map(|_| FlowLine {
-            position: vec2(
-                map_range(rand::random(), 0., 1., -width, width),
-                map_range(rand::random(), 0., 1., -height, height),
-            ),
-            velocity: Vec2::ZERO,
-        })
-        .collect();
+    let flow_lines: Vec<FlowLine> = (0..5000).map(|_| FlowLine::new(width, height)).collect();
 
-    Model { flow_lines }
+    Model {
+        flow_lines,
+        noise_config: NoiseConfig::default(),
+    }
 }
 
 impl Exercise for Model {
