@@ -7,6 +7,7 @@ mod chapter_0;
 mod chapter_1;
 mod exercise;
 mod flow_fields;
+mod noise_config;
 
 use chapter::Chapter;
 use exercise::ExerciseInfo;

@@ -1,8 +1,8 @@
 use std::time::Instant;
 
-use crate::nature_of_code::exercise::Exercise;
+use crate::nature_of_code::{exercise::Exercise, noise_config::NoiseConfig};
 use nannou::image::DynamicImage;
-use nannou::noise::{BasicMulti, MultiFractal};
+use nannou::noise::BasicMulti;
 use nannou::prelude::*;
 use nannou::wgpu::Texture;
 use nannou::{image::ImageBuffer, noise::NoiseFn};
@@ -21,10 +21,7 @@ pub fn init(_app: &App) -> Box<dyn Exercise> {
         t: 0.,
         t_rate: 0.01,
         color_palette: ColorPalette::FullColor,
-        octaves: BasicMulti::DEFAULT_OCTAVES,
-        frequency: BasicMulti::DEFAULT_FREQUENCY,
-        lacunarity: BasicMulti::DEFAULT_LACUNARITY,
-        persistence: BasicMulti::DEFAULT_PERSISTENCE,
+        noise_config: NoiseConfig::default(),
     })
 }
 
@@ -43,19 +40,12 @@ struct Model {
     t: f64,
     t_rate: f64,
     color_palette: ColorPalette,
-    octaves: usize,
-    frequency: f64,
-    lacunarity: f64,
-    persistence: f64,
+    noise_config: NoiseConfig,
 }
 
 impl Model {
     fn noise(&self) -> BasicMulti {
-        BasicMulti::new()
-            .set_octaves(self.octaves)
-            .set_frequency(self.frequency)
-            .set_lacunarity(self.lacunarity)
-            .set_persistence(self.persistence)
+        self.noise_config.create_noise()
     }
 
     fn pixel_for(&self, x: u32, y: u32, noise: &BasicMulti) -> nannou::image::Rgba<u8> {
@@ -167,47 +157,7 @@ impl Exercise for Model {
                     egui::Vec2::new(0., 0.),
                     egui::Layout::top_down(egui::Align::LEFT),
                     |ui| {
-                        if ui
-                            .add(egui::Slider::new(&mut self.octaves, 1..=10).text("Octaves"))
-                            .drag_released()
-                        {
-                            self.build_image = true;
-                        }
-
-                        if ui
-                            .add(
-                                egui::Slider::new(&mut self.frequency, 0.1..=4.0).text("Frequency"),
-                            )
-                            .drag_released()
-                        {
-                            self.build_image = true;
-                        }
-                    },
-                );
-
-                ui.separator();
-
-                ui.allocate_ui_with_layout(
-                    egui::Vec2::new(0., 0.),
-                    egui::Layout::top_down(egui::Align::LEFT),
-                    |ui| {
-                        if ui
-                            .add(
-                                egui::Slider::new(&mut self.lacunarity, 0.1..=4.0)
-                                    .text("Lacunarity"),
-                            )
-                            .drag_released()
-                        {
-                            self.build_image = true;
-                        }
-
-                        if ui
-                            .add(
-                                egui::Slider::new(&mut self.persistence, 0.1..=4.0)
-                                    .text("Persistence"),
-                            )
-                            .drag_released()
-                        {
+                        if self.noise_config.ui(ui) {
                             self.build_image = true;
                         }
                     },
