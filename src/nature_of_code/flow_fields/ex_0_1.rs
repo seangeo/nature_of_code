@@ -13,6 +13,23 @@ struct Model {
     flow_lines: Vec<FlowLine>,
 }
 
+impl Model {
+    fn update_flow_lines(&mut self, time: f64) -> &Self {
+        let noise = BasicMulti::new();
+
+        for flow_line in self.flow_lines.iter_mut() {
+            let direction = noise.get([
+                flow_line.position.x as f64 / 150.,
+                flow_line.position.y as f64 / 150.,
+                time / 100.,
+            ]);
+            flow_line.update_velocity(direction as f32).flow();
+        }
+
+        self
+    }
+}
+
 struct FlowLine {
     position: Vec2,
     velocity: Vec2,
@@ -51,16 +68,7 @@ fn model(app: &App) -> Model {
 
 impl Exercise for Model {
     fn update(&mut self, app: &App, _update: Update, _ui_ctx: &FrameCtx) {
-        let noise = BasicMulti::new();
-
-        for flow_line in self.flow_lines.iter_mut() {
-            let direction = noise.get([
-                flow_line.position.x as f64 / 150.,
-                flow_line.position.y as f64 / 150.,
-                app.time as f64 / 100.,
-            ]);
-            flow_line.update_velocity(direction as f32).flow();
-        }
+        self.update_flow_lines(app.time as f64);
     }
 
     fn draw(&self, app: &App, frame: &Frame) {
