@@ -16,8 +16,6 @@ pub fn init(_app: &App) -> Box<dyn Exercise> {
         image: DynamicImage::ImageRgba8(image),
         build_image: true,
         animate: false,
-        x_fact: 50.,
-        y_fact: 50.,
         t: 0.,
         t_rate: 0.01,
         color_palette: ColorPalette::FullColor,
@@ -35,8 +33,6 @@ struct Model {
     image: DynamicImage,
     build_image: bool,
     animate: bool,
-    x_fact: f64,
-    y_fact: f64,
     t: f64,
     t_rate: f64,
     color_palette: ColorPalette,
@@ -50,8 +46,8 @@ impl Model {
 
     fn pixel_for(&self, x: u32, y: u32, noise: &BasicMulti) -> nannou::image::Rgba<u8> {
         let n = noise.get([
-            x as f64 / self.x_fact as f64,
-            y as f64 / self.y_fact as f64,
+            x as f64 / self.noise_config.x_fact as f64,
+            y as f64 / self.noise_config.y_fact as f64,
             self.t,
         ]);
 
@@ -102,27 +98,6 @@ impl Exercise for Model {
     fn update(&mut self, app: &App, _update: Update, ui_ctx: &FrameCtx) {
         egui::TopBottomPanel::bottom("Settings").show(&ui_ctx, |ui| {
             ui.with_layout(egui::Layout::left_to_right(egui::Align::TOP), |ui| {
-                ui.allocate_ui_with_layout(
-                    egui::Vec2::new(0., 0.),
-                    egui::Layout::top_down(egui::Align::LEFT),
-                    |ui| {
-                        if ui
-                            .add(egui::Slider::new(&mut self.x_fact, 0.1..=200.0).text("x-factor"))
-                            .drag_released()
-                        {
-                            self.build_image = true;
-                        }
-                        if ui
-                            .add(egui::Slider::new(&mut self.y_fact, 0.1..=200.0).text("y-factor"))
-                            .drag_released()
-                        {
-                            self.build_image = true;
-                        }
-                    },
-                );
-
-                ui.separator();
-
                 ui.allocate_ui_with_layout(
                     egui::Vec2::new(100., 0.),
                     egui::Layout::top_down(egui::Align::LEFT),
