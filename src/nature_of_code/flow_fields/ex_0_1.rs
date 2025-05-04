@@ -64,8 +64,8 @@ impl Model {
 
         for flow_line in self.flow_lines.iter_mut() {
             let direction = noise.get([
-                flow_line.position.x as f64 / 150.,
-                flow_line.position.y as f64 / 150.,
+                flow_line.position.x as f64 / self.noise_config.x_fact,
+                flow_line.position.y as f64 / self.noise_config.y_fact,
                 time / 100.,
             ]);
             flow_line.update_velocity(direction as f32).flow();
