@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::nature_of_code::{exercise::Exercise, noise_config::NoiseConfig};
 use nannou::{noise::NoiseFn, prelude::*};
 use nannou_egui::{self, egui, FrameCtx};
@@ -9,20 +11,29 @@ pub fn init(app: &App) -> Box<dyn Exercise> {
 struct FlowLine {
     position: Vec2,
     velocity: Vec2,
+    tail: VecDeque<Vec2>,
+    trail_length: usize,
 }
 
 impl FlowLine {
-    fn new(width: f32, height: f32) -> Self {
+    fn new(width: f32, height: f32, trail_length: usize) -> Self {
         FlowLine {
             position: vec2(
                 map_range(rand::random(), 0., 1., -width, width),
                 map_range(rand::random(), 0., 1., -height, height),
             ),
             velocity: Vec2::ZERO,
+            tail: VecDeque::with_capacity(trail_length),
+            trail_length,
         }
     }
 
     fn flow(&mut self) -> &mut Self {
+        if self.tail.len() >= self.trail_length {
+            self.tail.pop_front();
+        }
+        self.tail.push_back(self.position);
+
         self.position += self.velocity;
         self
     }
@@ -38,25 +49,32 @@ struct Model {
     flow_lines: Vec<FlowLine>,
     noise_config: NoiseConfig,
     clear: bool,
+    trail_count: usize,
+    trail_length: usize,
 }
 
 impl Model {
     fn new(app: &App) -> Model {
+        let trail_length = 100;
+        let trail_count = 100;
+
         Model {
-            flow_lines: Self::generate_flow_lines(app.window_rect()),
+            flow_lines: Self::generate_flow_lines(trail_count, app.window_rect(), trail_length),
             noise_config: NoiseConfig::default(),
             clear: false,
+            trail_count,
+            trail_length,
         }
     }
 
-    fn generate_flow_lines(window: Rect) -> Vec<FlowLine> {
-        (0..5000)
-            .map(|_| FlowLine::new(window.w(), window.h()))
+    fn generate_flow_lines(trail_count: usize, window: Rect, trail_length: usize) -> Vec<FlowLine> {
+        (0..=trail_count)
+            .map(|_| FlowLine::new(window.w(), window.h(), trail_length))
             .collect()
     }
 
     fn reset_flow_lines(&mut self, window: Rect) {
-        self.flow_lines = Self::generate_flow_lines(window);
+        self.flow_lines = Self::generate_flow_lines(self.trail_count, window, self.trail_length);
     }
 
     fn update_flow_lines(&mut self, time: f64) -> &Self {
@@ -87,6 +105,27 @@ impl Exercise for Model {
                     egui::Vec2::new(0., 0.),
                     egui::Layout::top_down(egui::Align::LEFT),
                     |ui| {
+                        ui.add(
+                            egui::Slider::new(&mut self.trail_length, 0..=1000)
+                                .text("Trail length"),
+                        )
+                        .drag_released()
+                        .then(|| self.clear = true);
+
+                        ui.add(
+                            egui::Slider::new(&mut self.trail_count, 0..=4000).text("Trail count"),
+                        )
+                        .drag_released()
+                        .then(|| self.clear = true);
+                    },
+                );
+
+                ui.separator();
+
+                ui.allocate_ui_with_layout(
+                    egui::Vec2::new(0., 0.),
+                    egui::Layout::top_down(egui::Align::LEFT),
+                    |ui| {
                         if self.noise_config.ui(ui) {
                             self.clear = true;
                         }
@@ -105,15 +144,10 @@ impl Exercise for Model {
     fn draw(&self, app: &App, frame: &Frame) {
         let draw = app.draw();
 
-        if self.clear {
-            draw.background().color(WHITE);
-        }
+        draw.background().color(WHITE);
 
         for flow_line in &self.flow_lines {
-            draw.line()
-                .start(flow_line.position - flow_line.velocity)
-                .end(flow_line.position)
-                .color(BLACK);
+            draw.polyline().color(BLACK).points(flow_line.tail.clone());
         }
 
         draw.to_frame(app, &frame).unwrap();
