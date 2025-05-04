@@ -3,30 +3,7 @@ use nannou::{noise::NoiseFn, prelude::*};
 use nannou_egui::{self, egui, FrameCtx};
 
 pub fn init(app: &App) -> Box<dyn Exercise> {
-    Box::new(model(app))
-}
-
-struct Model {
-    flow_lines: Vec<FlowLine>,
-    noise_config: NoiseConfig,
-    clear: bool,
-}
-
-impl Model {
-    fn update_flow_lines(&mut self, time: f64) -> &Self {
-        let noise = self.noise_config.create_noise();
-
-        for flow_line in self.flow_lines.iter_mut() {
-            let direction = noise.get([
-                flow_line.position.x as f64 / 150.,
-                flow_line.position.y as f64 / 150.,
-                time / 100.,
-            ]);
-            flow_line.update_velocity(direction as f32).flow();
-        }
-
-        self
-    }
+    Box::new(Model::new(app))
 }
 
 struct FlowLine {
@@ -57,19 +34,44 @@ impl FlowLine {
     }
 }
 
-fn generate_flow_lines(width: f32, height: f32) -> Vec<FlowLine> {
-    (0..5000).map(|_| FlowLine::new(width, height)).collect()
+struct Model {
+    flow_lines: Vec<FlowLine>,
+    noise_config: NoiseConfig,
+    clear: bool,
 }
 
-fn model(app: &App) -> Model {
-    let window = app.window_rect();
-    let width = window.w();
-    let height = window.h();
+impl Model {
+    fn new(app: &App) -> Model {
+        Model {
+            flow_lines: Self::generate_flow_lines(app.window_rect()),
+            noise_config: NoiseConfig::default(),
+            clear: false,
+        }
+    }
 
-    Model {
-        flow_lines: generate_flow_lines(width, height),
-        noise_config: NoiseConfig::default(),
-        clear: false,
+    fn generate_flow_lines(window: Rect) -> Vec<FlowLine> {
+        (0..5000)
+            .map(|_| FlowLine::new(window.w(), window.h()))
+            .collect()
+    }
+
+    fn reset_flow_lines(&mut self, window: Rect) {
+        self.flow_lines = Self::generate_flow_lines(window);
+    }
+
+    fn update_flow_lines(&mut self, time: f64) -> &Self {
+        let noise = self.noise_config.create_noise();
+
+        for flow_line in self.flow_lines.iter_mut() {
+            let direction = noise.get([
+                flow_line.position.x as f64 / 150.,
+                flow_line.position.y as f64 / 150.,
+                time / 100.,
+            ]);
+            flow_line.update_velocity(direction as f32).flow();
+        }
+
+        self
     }
 }
 
@@ -94,7 +96,7 @@ impl Exercise for Model {
         });
 
         if self.clear {
-            self.flow_lines = generate_flow_lines(app.window_rect().w(), app.window_rect().h());
+            self.reset_flow_lines(app.window_rect());
         }
 
         self.update_flow_lines(app.time as f64);
